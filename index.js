@@ -64,8 +64,42 @@ server.post('/api/users', (req, res) => {
 //   - return the following JSON object: `{ error: "The users information could not be retrieved." }`.
 
 server.get('/api/users', (req, res) => {
-    
-})
+    db.find()
+    .then(users => {
+        res.send(users);
+    }).catch(err => {
+        res.status(500).json({error: "The users information could not be retrieved.", err })
+    });
+});
+
+// When the client makes a `GET` request to `/api/users/:id`:
+
+// - If the _user_ with the specified `id` is not found:
+
+//   - return HTTP status code `404` (Not Found).
+//   - return the following JSON object: `{ message: "The user with the specified ID does not exist." }`.
+
+// - If there's an error in retrieving the _user_ from the database:
+//   - cancel the request.
+//   - respond with HTTP status code `500`.
+//   - return the following JSON object: `{ error: "The user information could not be retrieved." }`.
+
+server.get('/api/users/:id', (req, res) => {
+    const {id} = req.params;
+
+    db.findById(id)
+    .then(user => {
+        if (user.length === 0) {
+            res.status(404).json({message: "The user with the specified ID does not exist."})
+        } else {
+            res.json(user);
+        }
+    })
+    .catch(err => {
+        res.status(500).json({error: "The user information could not be retrieved."})
+    });
+});
+
 
 
 server.listen(4000, () => {
