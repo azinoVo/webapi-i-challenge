@@ -2,6 +2,17 @@
 
 const express = require('express');
 const server = express();
+const db = require('./data/db');
+
+server.use(express.json());
+
+// | Method | URL            | Description                                                                                                                       |
+// | ------ | -------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+// | POST   | /api/users     | Creates a user using the information sent inside the `request body`.                                                              |
+// | GET    | /api/users     | Returns an array of all the user objects contained in the database.                                                               |
+// | GET    | /api/users/:id | Returns the user object with the specified `id`.                                                                                  |
+// | DELETE | /api/users/:id | Removes the user with the specified `id` and returns the deleted user.                                                            |
+// | PUT    | /api/users/:id | Updates the user with the specified `id` using data from the `request body`. Returns the modified document, **NOT the original**. |
 
 // When the client makes a `POST` request to `/api/users`:
 // using the insert function in db.js
@@ -23,17 +34,38 @@ const server = express();
 //   - return the following JSON object: `{ error: "There was an error while saving the user to the database" }`.
 
 server.post('/api/users', (req, res) => {
-    const user = req.body;
+    const name = req.body.name;
+    const bio = req.body.bio;
 
-    db.insert(user)
+    if (!name || !bio) {
+        res.status(400).json({errorMessage: "Please provide name and bio for the user." });
+        return;
+    }
+
+    db.insert({
+        name,
+        bio
+    })
         .then(user => {
-            res.status(201).json({ created: true, user });
+            console.log(user);
+            res.status(201).json({user});
         })
         .catch(err => {
-            res.status(400).json({ created: false, err });
+            console.log(err);
+            res.status(500).json({ error: "There was an error while saving the user to the database" });
         })
 });
 
+// When the client makes a `GET` request to `/api/users`:
+
+// - If there's an error in retrieving the _users_ from the database:
+//   - cancel the request.
+//   - respond with HTTP status code `500`.
+//   - return the following JSON object: `{ error: "The users information could not be retrieved." }`.
+
+server.get('/api/users', (req, res) => {
+    
+})
 
 
 server.listen(4000, () => {
